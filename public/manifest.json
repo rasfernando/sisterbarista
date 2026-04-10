@@ -4,8 +4,8 @@
   "description": "Collect stamps, earn free coffee!",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fdfbf7",
-  "theme_color": "#1a0f0a",
+  "background_color": "#f9f6f0",
+  "theme_color": "#8fac7f",
   "icons": [
     {
       "src": "/icon-192.png",
