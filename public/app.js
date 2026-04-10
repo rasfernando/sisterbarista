@@ -167,6 +167,86 @@ async function loadCustomerView() {
   } else {
     activityList.innerHTML = '<p class="empty-state">No stamps yet - grab a coffee!</p>';
   }
+
+  // Render the customer's static QR code
+  renderCustomerQR();
+}
+
+// ============================================
+// Customer QR Code
+// ============================================
+
+function renderCustomerQR() {
+  const canvas = document.getElementById('customer-qr');
+  QRCode.toCanvas(canvas, currentUser.id, {
+    width: 160,
+    margin: 2,
+    color: { dark: '#2a2a2a', light: '#ffffff' }
+  });
+}
+
+// ============================================
+// Staff QR Scanner
+// ============================================
+
+let html5QrScanner = null;
+
+function toggleScanner() {
+  const container = document.getElementById('scanner-container');
+
+  if (html5QrScanner) {
+    html5QrScanner.stop().then(() => {
+      html5QrScanner.clear();
+      html5QrScanner = null;
+    }).catch(() => {});
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+
+  html5QrScanner = new Html5Qrcode('scanner-reader');
+  html5QrScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    async (decodedText) => {
+      // Check if it's a valid UUID
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedText)) {
+        // Stop scanner immediately
+        html5QrScanner.stop().then(() => {
+          html5QrScanner.clear();
+          html5QrScanner = null;
+        }).catch(() => {});
+        container.style.display = 'none';
+
+        await lookupCustomerByQR(decodedText);
+      }
+    },
+    () => {} // ignore scan errors
+  ).catch(err => {
+    container.style.display = 'none';
+    html5QrScanner = null;
+    alert('Could not access camera. Please use customer search instead.');
+  });
+}
+
+async function lookupCustomerByQR(uuid) {
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('id, name, email')
+    .eq('id', uuid)
+    .eq('role', 'customer')
+    .single();
+
+  if (profile) {
+    // Add to allCustomers cache if not already there
+    if (!allCustomers.find(c => c.id === profile.id)) {
+      allCustomers.push(profile);
+    }
+    selectCustomer(profile.id);
+  } else {
+    alert('Customer not found');
+  }
 }
 
 // ============================================

@@ -437,6 +437,60 @@ body {
 }
 
 /* ============================================
+   CUSTOMER QR CODE
+   ============================================ */
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1.25rem;
+}
+
+.qr-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.75rem;
+}
+
+.qr-section canvas {
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* ============================================
+   STAFF QR SCANNER
+   ============================================ */
+.scanner-container {
+  padding: 1rem 1.25rem;
+}
+
+#scanner-reader {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+#scanner-reader video {
+  border-radius: var(--radius-md);
+}
+
+.scanner-cancel {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.625rem;
+  background: var(--red-bg);
+  color: var(--red-err);
+  border: 1px solid var(--red-err);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ============================================
    ACTIVITY HISTORY
    ============================================ */
 .history-section {
