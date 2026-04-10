@@ -600,30 +600,24 @@ async function redeemReward() {
 // ============================================
 
 async function init() {
-  // Set up auth listener
-  // and also the INITIAL_SESSION event
-  sb.auth.onAuthStateChange(async (event, session) => {
+  // Set up auth listener with debounce to prevent race conditions
+  let signInTimer = null;
+  sb.auth.onAuthStateChange((event, session) => {
     console.log('Auth event:', event, session ? 'has session' : 'no session');
 
-    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-      if (session) {
-        await onSignIn(session.user);
-      }
-    }
-
     if (event === 'SIGNED_OUT') {
+      clearTimeout(signInTimer);
       currentUser = null;
       currentProfile = null;
       showScreen('auth-screen');
+      return;
+    }
+
+    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session) {
+      clearTimeout(signInTimer);
+      signInTimer = setTimeout(() => onSignIn(session.user), 300);
     }
   });
-
-  // Also explicitly check for existing session as a fallback
-  const { data: { session } } = await sb.auth.getSession();
-  if (session && !currentProfile) {
-    console.log('Fallback: found existing session');
-    await onSignIn(session.user);
-  }
 
   // Show dev panel if in dev environment
   if (IS_DEV) {
