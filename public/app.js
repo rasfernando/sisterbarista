@@ -437,8 +437,8 @@ async function awardStamp(ownCup) {
   }
 
   const msg = ownCup
-    ? `+2 stamps awarded (own cup bonus!) — now ${data.stamps}/10`
-    : `+1 stamp awarded — now ${data.stamps}/10`;
+    ? `+1 bonus stamp (own cup!) — now ${data.stamps}/10`
+    : `+1 stamp — now ${data.stamps}/10`;
 
   feedbackEl.className = 'staff-feedback success';
   feedbackEl.textContent = data.card_completed
