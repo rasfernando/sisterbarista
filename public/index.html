@@ -27,13 +27,14 @@
         </div>
         <div id="auth-form">
           <div id="auth-step-email">
-            <input type="text" id="auth-name" placeholder="Your first name" autocomplete="given-name">
+            <input type="text" id="auth-name" placeholder="Your first name" autocomplete="given-name" style="display:none;">
             <input type="email" id="auth-email" placeholder="Your email" autocomplete="email">
-            <button id="auth-submit" onclick="handleAuth()">Get started</button>
+            <button id="auth-submit" onclick="handleAuth()">Send magic link</button>
+            <p id="auth-toggle" class="auth-toggle">New here? <a href="#" onclick="showSignUpMode(); return false;">Sign up</a></p>
           </div>
           <div id="auth-step-otp" style="display:none;">
-            <p class="auth-message">Check your email for a magic link!</p>
-            <p class="auth-submessage">We've sent a sign-in link to <span id="auth-sent-email"></span></p>
+            <p class="auth-message">Check your email!</p>
+            <p class="auth-submessage">We've sent a magic link to <span id="auth-sent-email"></span>. Click it to sign in.</p>
           </div>
           <div id="auth-error" class="error-message" style="display:none;"></div>
         </div>

@@ -16,18 +16,14 @@ let selectedCustomer = null;
 // ============================================
 
 async function handleAuth() {
-  const name = document.getElementById('auth-name').value.trim();
+  const nameEl = document.getElementById('auth-name');
   const email = document.getElementById('auth-email').value.trim();
+  const name = nameEl ? nameEl.value.trim() : '';
   const errorEl = document.getElementById('auth-error');
   const btn = document.getElementById('auth-submit');
 
   errorEl.style.display = 'none';
 
-  if (!name) {
-    errorEl.textContent = 'Please enter your name';
-    errorEl.style.display = 'block';
-    return;
-  }
   if (!email) {
     errorEl.textContent = 'Please enter your email';
     errorEl.style.display = 'block';
@@ -35,27 +31,40 @@ async function handleAuth() {
   }
 
   btn.disabled = true;
-  btn.textContent = 'Sending...';
+  btn.textContent = 'Sending magic link...';
 
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: {
-      data: { name },
-      emailRedirectTo: window.location.origin
-    }
-  });
+  const options = {
+    emailRedirectTo: window.location.origin
+  };
+  if (name) {
+    options.data = { name };
+  }
+
+  const { error } = await sb.auth.signInWithOtp({ email, options });
 
   if (error) {
     errorEl.textContent = error.message;
     errorEl.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = 'Get started';
+    btn.textContent = 'Send magic link';
     return;
   }
 
   document.getElementById('auth-step-email').style.display = 'none';
   document.getElementById('auth-step-otp').style.display = 'block';
   document.getElementById('auth-sent-email').textContent = email;
+}
+
+function showSignInMode() {
+  document.getElementById('auth-name').style.display = 'none';
+  document.getElementById('auth-submit').textContent = 'Send magic link';
+  document.getElementById('auth-toggle').innerHTML = 'New here? <a href="#" onclick="showSignUpMode(); return false;">Sign up</a>';
+}
+
+function showSignUpMode() {
+  document.getElementById('auth-name').style.display = 'block';
+  document.getElementById('auth-submit').textContent = 'Get started';
+  document.getElementById('auth-toggle').innerHTML = 'Already a member? <a href="#" onclick="showSignInMode(); return false;">Sign in</a>';
 }
 
 async function handleLogout() {
@@ -411,46 +420,84 @@ function isValidUUID(str) {
 // ============================================
 
 async function init() {
-  // Check for existing session
-  const { data: { session } } = await sb.auth.getSession();
-
-  if (session) {
-    await onSignIn(session.user);
-  }
-
-  // Listen for auth changes (handles magic link redirect)
+  // Set up auth listener FIRST — this catches the magic link redirect
+  // and also the INITIAL_SESSION event
   sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      await onSignIn(session.user);
+    console.log('Auth event:', event, session ? 'has session' : 'no session');
+
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+      if (session) {
+        await onSignIn(session.user);
+      }
+    }
+
+    if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      currentProfile = null;
+      showScreen('auth-screen');
     }
   });
+
+  // Also explicitly check for existing session as a fallback
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && !currentProfile) {
+    console.log('Fallback: found existing session');
+    await onSignIn(session.user);
+  }
 }
 
 async function onSignIn(user) {
+  // Prevent double-loading
+  if (currentProfile && currentUser?.id === user.id) {
+    // Already signed in, just make sure correct screen is showing
+    if (currentProfile.role === 'staff' || currentProfile.role === 'admin') {
+      showScreen('staff-screen');
+    } else {
+      showScreen('customer-screen');
+    }
+    return;
+  }
+
   currentUser = user;
+  console.log('Signing in user:', user.id, user.email);
 
   // Get or wait for profile (trigger might still be running)
   let profile = null;
+  let lastError = null;
   let attempts = 0;
-  while (!profile && attempts < 5) {
-    const { data } = await sb
+
+  while (!profile && attempts < 8) {
+    const { data, error } = await sb
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
+
+    if (error) {
+      console.warn('Profile fetch attempt', attempts + 1, ':', error.message);
+      lastError = error;
+    }
     profile = data;
+
     if (!profile) {
       attempts++;
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 600));
     }
   }
 
   if (!profile) {
-    console.error('Could not load profile');
+    console.error('Could not load profile after', attempts, 'attempts. Last error:', lastError);
+    // Show error to user instead of silently failing
+    const errorEl = document.getElementById('auth-error');
+    if (errorEl) {
+      errorEl.textContent = 'Signed in but could not load your profile. Please refresh the page.';
+      errorEl.style.display = 'block';
+    }
     return;
   }
 
   currentProfile = profile;
+  console.log('Profile loaded:', profile.name, 'role:', profile.role);
 
   // Update name if it changed
   const metaName = user.user_metadata?.name;
