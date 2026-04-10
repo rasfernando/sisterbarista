@@ -1,0 +1,18 @@
+{
+  "name": "sister-barista-loyalty",
+  "version": "1.0.0",
+  "description": "Mobile-first loyalty stamp card app for Sister Barista coffee shop",
+  "main": "public/index.html",
+  "scripts": {
+    "dev": "npx http-server public -p 3000 -c-1",
+    "build": "echo 'Static site - no build needed'",
+    "start": "npx http-server public -p 3000"
+  },
+  "keywords": [
+    "loyalty",
+    "coffee",
+    "stamp-card"
+  ],
+  "author": "",
+  "license": "MIT"
+}

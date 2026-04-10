@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Sister Barista — Loyalty Card</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#2d1810">
+  <meta name="theme-color" content="#f9f6f0">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="Sister Barista loyalty rewards - collect stamps, earn free coffee">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <link rel="stylesheet" href="/styles.css">
@@ -21,20 +22,22 @@
     <div id="auth-screen" class="screen active">
       <div class="auth-container">
         <div class="logo">
-          <div class="logo-icon">&#9749;</div>
+          <div class="logo-image">
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-LLjWJhlfp0XRwsGcGUx8AlpUvQ8vgC.png" alt="Sister Barista Logo" />
+          </div>
           <h1>Sister Barista</h1>
           <p class="tagline">Your loyalty, rewarded</p>
         </div>
         <div id="auth-form">
           <div id="auth-step-email">
             <input type="text" id="auth-name" placeholder="Your first name" autocomplete="given-name" style="display:none;">
-            <input type="email" id="auth-email" placeholder="Your email" autocomplete="email">
+            <input type="email" id="auth-email" placeholder="Your email address" autocomplete="email">
             <button id="auth-submit" onclick="handleAuth()">Send magic link</button>
             <p id="auth-toggle" class="auth-toggle">New here? <a href="#" onclick="showSignUpMode(); return false;">Sign up</a></p>
           </div>
           <div id="auth-step-otp" style="display:none;">
             <p class="auth-message">Check your email!</p>
-            <p class="auth-submessage">We've sent a magic link to <span id="auth-sent-email"></span>. Click it to sign in.</p>
+            <p class="auth-submessage">We&apos;ve sent a magic link to <strong id="auth-sent-email"></strong>. Click it to sign in.</p>
           </div>
           <div id="auth-error" class="error-message" style="display:none;"></div>
         </div>
@@ -45,8 +48,16 @@
     <div id="customer-screen" class="screen">
       <header class="app-header">
         <h2>Sister Barista</h2>
-        <button class="icon-btn" onclick="showQR()" title="Show QR code">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><line x1="20" y1="14" x2="20" y2="20"/><line x1="14" y1="20" x2="20" y2="20"/></svg>
+        <button class="icon-btn" onclick="showQR()" title="Show QR code" aria-label="Show loyalty QR code">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="3" height="3"/>
+            <path d="M20 14v3h-3"/>
+            <path d="M14 20h3"/>
+            <path d="M20 20h.01"/>
+          </svg>
         </button>
       </header>
 
@@ -69,7 +80,11 @@
         </div>
 
         <div id="reward-banner" class="reward-banner" style="display:none;">
-          <div class="reward-icon">&#127881;</div>
+          <div class="reward-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#d4a017" stroke="#d4a017"/>
+            </svg>
+          </div>
           <div>
             <strong>Free coffee earned!</strong>
             <p>Show this to your barista to redeem</p>
@@ -80,7 +95,7 @@
       <div class="history-section">
         <h4>Recent activity</h4>
         <div id="activity-list" class="activity-list">
-          <p class="empty-state">No stamps yet — grab a coffee!</p>
+          <p class="empty-state">No stamps yet - grab a coffee!</p>
         </div>
       </div>
 
@@ -88,10 +103,10 @@
     </div>
 
     <!-- QR Modal -->
-    <div id="qr-modal" class="modal" style="display:none;">
+    <div id="qr-modal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="qr-title">
       <div class="modal-content">
-        <button class="modal-close" onclick="closeQR()">&times;</button>
-        <h3>Your loyalty QR</h3>
+        <button class="modal-close" onclick="closeQR()" aria-label="Close modal">&times;</button>
+        <h3 id="qr-title">Your loyalty QR</h3>
         <p>Show this to your barista</p>
         <canvas id="qr-canvas"></canvas>
         <p class="qr-name" id="qr-name"></p>
@@ -102,8 +117,14 @@
     <div id="staff-screen" class="screen">
       <header class="app-header">
         <h2>Sister Barista <span class="badge">Staff</span></h2>
-        <button class="icon-btn" onclick="toggleStaffScanner()" title="Scan QR">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+        <button class="icon-btn" onclick="toggleStaffScanner()" title="Scan QR" aria-label="Scan customer QR code">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 012-2h2"/>
+            <path d="M17 3h2a2 2 0 012 2v2"/>
+            <path d="M21 17v2a2 2 0 01-2 2h-2"/>
+            <path d="M7 21H5a2 2 0 01-2-2v-2"/>
+            <line x1="7" y1="12" x2="17" y2="12"/>
+          </svg>
         </button>
       </header>
 
@@ -116,38 +137,77 @@
         </div>
       </div>
 
-      <!-- Customer Search -->
-      <div class="staff-search">
-        <input type="text" id="staff-search-input" placeholder="Search customer by name..." oninput="searchCustomers(this.value)">
-        <div id="search-results" class="search-results"></div>
+      <!-- Customer List View -->
+      <div id="staff-list-view">
+        <div class="staff-search">
+          <input type="text" id="staff-search-input" placeholder="Search customer by name..." oninput="filterCustomers(this.value)" aria-label="Search customers">
+        </div>
+        <div id="customer-list" class="customer-list">
+          <p class="empty-state">Loading customers...</p>
+        </div>
       </div>
 
-      <!-- Selected Customer -->
-      <div id="selected-customer" class="selected-customer" style="display:none;">
-        <div class="selected-header">
-          <div>
-            <h3 id="selected-name"></h3>
-            <p id="selected-stamps" class="stamps-info"></p>
+      <!-- Customer Detail View -->
+      <div id="staff-detail-view" style="display:none;">
+        <div class="detail-header">
+          <button class="back-btn" onclick="showCustomerList()" aria-label="Back to customer list">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"/>
+              <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            <span>Customers</span>
+          </button>
+        </div>
+
+        <div class="customer-detail-card">
+          <div class="detail-info">
+            <h3 id="detail-name"></h3>
+            <p id="detail-email" class="detail-email"></p>
+            <div id="detail-rewards-summary" class="rewards-summary"></div>
           </div>
-          <button class="deselect-btn" onclick="deselectCustomer()">&times;</button>
-        </div>
 
-        <div class="stamp-actions">
-          <button class="action-btn stamp-btn" onclick="awardStamp(false)">
-            <span class="action-icon">&#9749;</span>
-            <span>Add stamp</span>
-          </button>
-          <button class="action-btn owncup-btn" onclick="awardStamp(true)">
-            <span class="action-icon">&#127793;</span>
-            <span>Own cup bonus</span>
-          </button>
-          <button class="action-btn redeem-btn" id="redeem-btn" onclick="redeemReward()" style="display:none;">
-            <span class="action-icon">&#127881;</span>
-            <span>Redeem free coffee</span>
-          </button>
-        </div>
+          <div id="detail-cards" class="detail-cards">
+            <!-- Cards rendered by JS -->
+          </div>
 
-        <div id="staff-feedback" class="staff-feedback" style="display:none;"></div>
+          <div class="stamp-actions">
+            <button class="action-btn stamp-btn" onclick="awardStamp(false)">
+              <span class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 8h1a4 4 0 110 8h-1"/>
+                  <path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/>
+                  <line x1="6" y1="2" x2="6" y2="4"/>
+                  <line x1="10" y1="2" x2="10" y2="4"/>
+                  <line x1="14" y1="2" x2="14" y2="4"/>
+                </svg>
+              </span>
+              <span>Add stamp</span>
+            </button>
+            <button class="action-btn owncup-btn" onclick="awardStamp(true)">
+              <span class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 21h10"/>
+                  <path d="M12 21V11"/>
+                  <path d="M5 11l2.5-7h9L19 11"/>
+                  <circle cx="12" cy="7" r="2"/>
+                  <path d="M9 4l-1 3"/>
+                  <path d="M15 4l1 3"/>
+                </svg>
+              </span>
+              <span>Own cup (+1 bonus)</span>
+            </button>
+            <button class="action-btn redeem-btn" id="redeem-btn" onclick="redeemReward()" style="display:none;">
+              <span class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="#c9a84c" stroke="#c9a84c"/>
+                </svg>
+              </span>
+              <span>Redeem free coffee</span>
+            </button>
+          </div>
+
+          <div id="staff-feedback" class="staff-feedback" style="display:none;"></div>
+        </div>
       </div>
 
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
