@@ -112,7 +112,23 @@ async function loadCustomerView() {
   grid.innerHTML = '';
   for (let i = 0; i < 10; i++) {
     const slot = document.createElement('div');
-    slot.className = `stamp-slot${i < stamps ? ' filled' : ''}`;
+    const isFilled = i < stamps;
+    const isLastSlot = i === 9;
+    slot.className = `stamp-slot${isFilled ? ' filled' : ''}`;
+    
+    if (isFilled) {
+      if (isLastSlot) {
+        // Gold star for completed 10th slot
+        slot.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="#d4a017" stroke="#d4a017" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+      } else {
+        // Coffee cup for filled slot
+        slot.innerHTML = `<svg class="stamp-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 110 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/></svg>`;
+      }
+    } else if (isLastSlot) {
+      // Gold star placeholder for empty 10th slot
+      slot.innerHTML = `<svg class="star-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+    
     grid.appendChild(slot);
   }
 
@@ -137,18 +153,19 @@ async function loadCustomerView() {
       const label = e.own_cup
         ? `+${e.stamps_awarded} stamps (own cup bonus!)`
         : `+${e.stamps_awarded} stamp`;
+      const ecoIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 2px;"><path d="M7 21h10"/><path d="M12 21V11"/><path d="M5 11l2.5-7h9L19 11"/></svg>`;
       return `
         <div class="activity-item">
           <div>
             <div class="label">${label}</div>
-            ${e.own_cup ? '<div class="bonus">🌱 Eco bonus</div>' : ''}
+            ${e.own_cup ? `<div class="bonus">${ecoIcon} Eco bonus</div>` : ''}
           </div>
           <div class="date">${date}</div>
         </div>
       `;
     }).join('');
   } else {
-    activityList.innerHTML = '<p class="empty-state">No stamps yet — grab a coffee!</p>';
+    activityList.innerHTML = '<p class="empty-state">No stamps yet - grab a coffee!</p>';
   }
 }
 
