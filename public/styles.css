@@ -588,8 +588,24 @@ body {
 /* ============================================
    STAFF SCREEN
    ============================================ */
+#staff-list-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#staff-detail-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .staff-search {
-  padding: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border-bottom: 1px solid var(--border);
 }
 
 .staff-search input {
@@ -598,11 +614,10 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-md);
   font-size: 1rem;
-  background: white;
+  background: var(--cream);
   color: var(--charcoal);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 3px rgba(42, 42, 42, 0.05);
 }
 
 .staff-search input::placeholder {
@@ -612,20 +627,24 @@ body {
 .staff-search input:focus {
   border-color: var(--sage);
   box-shadow: 0 0 0 3px rgba(143, 172, 127, 0.18);
+  background: white;
 }
 
-.search-results {
-  margin-top: 0.625rem;
+/* Customer List */
+.customer-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.5rem;
 }
 
-.search-result-item {
+.customer-list-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.875rem 1rem;
+  padding: 1rem 1.125rem;
   background: white;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -633,75 +652,255 @@ body {
   border: 1px solid var(--border);
 }
 
-.search-result-item:hover {
+.customer-list-item:hover {
   background: var(--sage-wash);
   border-color: var(--sage-light);
 }
 
-.search-result-item:active {
+.customer-list-item:active {
   transform: scale(0.99);
 }
 
-.search-result-item .name {
+.customer-list-item .customer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.customer-list-item .name {
   font-weight: 500;
   color: var(--charcoal);
+  font-size: 0.95rem;
 }
 
-.search-result-item .stamps {
-  font-size: 0.85rem;
+.customer-list-item .stamps {
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
-.selected-customer {
-  margin: 0 1.25rem;
-  background: white;
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
-  box-shadow:
-    0 1px 3px rgba(42, 42, 42, 0.06),
-    0 8px 24px rgba(42, 42, 42, 0.07);
-  border: 1px solid var(--border);
-  animation: slideUp 0.3s ease-out;
-}
-
-.selected-header {
+.customer-list-item .customer-badges {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--cream-dark);
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.selected-header h3 {
-  font-size: 1.2rem;
-  color: var(--charcoal);
+.reward-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--gold-pale);
+  color: var(--gold);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--gold-light);
 }
 
-.stamps-info {
-  font-size: 0.875rem;
-  color: var(--mid);
-  margin-top: 0.25rem;
+.reward-indicator svg {
+  width: 12px;
+  height: 12px;
 }
 
-.deselect-btn {
-  background: var(--cream);
-  border: 1px solid var(--border);
-  color: var(--muted);
+/* Detail View Header */
+.detail-header {
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border-bottom: 1px solid var(--border);
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--sage-dark);
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  padding: 0.5rem 0;
+  transition: opacity 0.2s;
+}
+
+.back-btn:hover {
+  opacity: 0.7;
+}
+
+.back-btn svg {
+  stroke: var(--sage-dark);
+}
+
+/* Customer Detail Card */
+.customer-detail-card {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+.detail-info {
+  text-align: center;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-info h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 0.25rem;
+}
+
+.detail-email {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.rewards-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: var(--gold-pale);
+  color: var(--gold);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0.875rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--gold-light);
+}
+
+.rewards-summary.no-rewards {
+  background: var(--cream);
+  color: var(--muted);
+  border-color: var(--border);
+}
+
+.rewards-summary svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Cards Stack */
+.detail-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Individual Card */
+.staff-stamp-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  border: 1.5px solid var(--border);
+  position: relative;
+}
+
+.staff-stamp-card.active {
+  border-color: var(--sage-light);
+}
+
+.staff-stamp-card.unredeemed {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, white 0%, var(--gold-pale) 100%);
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15), 0 4px 12px rgba(201, 168, 76, 0.2);
+}
+
+.staff-stamp-card.redeemed {
+  opacity: 0.6;
+  background: var(--cream);
+}
+
+.card-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.625rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.card-label.current {
+  background: var(--sage-wash);
+  color: var(--sage-dark);
+}
+
+.card-label.free-coffee {
+  background: var(--gold);
+  color: white;
+}
+
+.card-label.redeemed {
+  background: var(--cream-dark);
+  color: var(--muted);
+}
+
+.card-label svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Mini stamp grid for staff view */
+.mini-stamps-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.mini-stamp-slot {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1.5px dashed var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.125rem;
-  transition: all 0.2s;
+  background: var(--cream);
+  max-width: 36px;
 }
 
-.deselect-btn:hover {
+.mini-stamp-slot.filled {
+  border: 1.5px solid var(--sage);
+  background: var(--sage-wash);
+}
+
+.mini-stamp-slot.filled svg {
+  color: var(--sage-dark);
+}
+
+.mini-stamp-slot:last-child {
+  border-color: var(--gold);
+  background: var(--gold-pale);
+}
+
+.mini-stamp-slot:last-child.filled {
+  border-style: solid;
+}
+
+.mini-stamp-slot:last-child:not(.filled) svg {
+  color: var(--gold);
+  opacity: 0.4;
+}
+
+/* Redeemed card stamps are muted */
+.staff-stamp-card.redeemed .mini-stamp-slot {
+  border-color: var(--muted);
   background: var(--cream-dark);
-  color: var(--charcoal);
+  opacity: 0.5;
+}
+
+.staff-stamp-card.redeemed .mini-stamp-slot.filled {
+  background: var(--muted);
+}
+
+.staff-stamp-card.redeemed .mini-stamp-slot.filled svg {
+  color: white;
 }
 
 .stamp-actions {

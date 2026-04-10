@@ -194,61 +194,112 @@ function closeQR() {
 // Staff View
 // ============================================
 
-let searchTimeout = null;
+let allCustomers = [];
+let customerCards = {};
 
-async function searchCustomers(query) {
-  const resultsEl = document.getElementById('search-results');
+async function loadStaffView() {
+  const listEl = document.getElementById('customer-list');
+  listEl.innerHTML = '<p class="empty-state">Loading customers...</p>';
 
-  if (query.length < 2) {
-    resultsEl.innerHTML = '';
+  // Load all customers
+  const { data: customers, error } = await sb
+    .from('profiles')
+    .select('id, name, email')
+    .eq('role', 'customer')
+    .order('name', { ascending: true });
+
+  if (error || !customers) {
+    listEl.innerHTML = '<p class="empty-state">Could not load customers</p>';
     return;
   }
 
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(async () => {
-    const { data: customers } = await sb
-      .from('profiles')
-      .select('id, name')
-      .eq('role', 'customer')
-      .ilike('name', `%${query}%`)
-      .limit(10);
+  allCustomers = customers;
 
-    if (!customers || customers.length === 0) {
-      resultsEl.innerHTML = '<p class="empty-state">No customers found</p>';
-      return;
-    }
-
-    // Get active cards for these customers
-    const customerIds = customers.map(c => c.id);
+  // Load all cards for these customers
+  const customerIds = customers.map(c => c.id);
+  if (customerIds.length > 0) {
     const { data: cards } = await sb
       .from('stamp_cards')
-      .select('customer_id, stamps_collected, is_complete, reward_redeemed')
+      .select('*')
       .in('customer_id', customerIds)
-      .eq('is_complete', false);
+      .order('created_at', { ascending: false });
 
-    const cardMap = {};
-    cards?.forEach(c => { cardMap[c.customer_id] = c; });
+    // Group cards by customer
+    customerCards = {};
+    cards?.forEach(card => {
+      if (!customerCards[card.customer_id]) {
+        customerCards[card.customer_id] = [];
+      }
+      customerCards[card.customer_id].push(card);
+    });
+  }
 
-    resultsEl.innerHTML = customers.map(c => {
-      const card = cardMap[c.id];
-      const stamps = card ? card.stamps_collected : 0;
-      return `
-        <div class="search-result-item" onclick="selectCustomer('${c.id}', '${c.name.replace(/'/g, "\\'")}')">
-          <span class="name">${c.name}</span>
-          <span class="stamps">${stamps}/10 stamps</span>
-        </div>
-      `;
-    }).join('');
-  }, 300);
+  renderCustomerList(allCustomers);
 }
 
-async function selectCustomer(id, name) {
-  selectedCustomer = { id, name };
+function renderCustomerList(customers) {
+  const listEl = document.getElementById('customer-list');
 
-  document.getElementById('search-results').innerHTML = '';
-  document.getElementById('staff-search-input').value = '';
-  document.getElementById('selected-customer').style.display = 'block';
-  document.getElementById('selected-name').textContent = name;
+  if (!customers || customers.length === 0) {
+    listEl.innerHTML = '<p class="empty-state">No customers found</p>';
+    return;
+  }
+
+  listEl.innerHTML = customers.map(c => {
+    const cards = customerCards[c.id] || [];
+    const activeCard = cards.find(card => !card.is_complete);
+    const unredeemedCount = cards.filter(card => card.is_complete && !card.reward_redeemed).length;
+    const stamps = activeCard?.stamps_collected || 0;
+
+    const rewardBadge = unredeemedCount > 0 
+      ? `<span class="reward-indicator">
+           <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+           ${unredeemedCount}
+         </span>`
+      : '';
+
+    return `
+      <div class="customer-list-item" onclick="selectCustomer('${c.id}')">
+        <div class="customer-info">
+          <span class="name">${c.name || 'Unnamed'}</span>
+          <span class="stamps">${stamps}/10 stamps</span>
+        </div>
+        <div class="customer-badges">
+          ${rewardBadge}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterCustomers(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) {
+    renderCustomerList(allCustomers);
+    return;
+  }
+  const filtered = allCustomers.filter(c => 
+    (c.name && c.name.toLowerCase().includes(q)) ||
+    (c.email && c.email.toLowerCase().includes(q))
+  );
+  renderCustomerList(filtered);
+}
+
+async function selectCustomer(id) {
+  const customer = allCustomers.find(c => c.id === id);
+  if (!customer) return;
+
+  selectedCustomer = { id, name: customer.name, email: customer.email };
+
+  // Show detail view, hide list view
+  document.getElementById('staff-list-view').style.display = 'none';
+  document.getElementById('staff-detail-view').style.display = 'flex';
+
+  document.getElementById('detail-name').textContent = customer.name || 'Unnamed';
+  document.getElementById('detail-email').textContent = customer.email || '';
 
   await refreshSelectedCustomer();
 }
@@ -256,28 +307,115 @@ async function selectCustomer(id, name) {
 async function refreshSelectedCustomer() {
   if (!selectedCustomer) return;
 
+  // Reload cards for this customer
   const { data: cards } = await sb
     .from('stamp_cards')
     .select('*')
     .eq('customer_id', selectedCustomer.id)
-    .order('created_at', { ascending: false })
-    .limit(5);
+    .order('created_at', { ascending: false });
+
+  customerCards[selectedCustomer.id] = cards || [];
 
   const activeCard = cards?.find(c => !c.is_complete);
-  const redeemableCard = cards?.find(c => c.is_complete && !c.reward_redeemed);
-  const stamps = activeCard?.stamps_collected || 0;
+  const unredeemedCards = cards?.filter(c => c.is_complete && !c.reward_redeemed) || [];
+  const redeemedCards = cards?.filter(c => c.is_complete && c.reward_redeemed) || [];
 
-  document.getElementById('selected-stamps').textContent =
-    `${stamps}/10 stamps on current card`;
+  // Rewards summary
+  const summaryEl = document.getElementById('detail-rewards-summary');
+  if (unredeemedCards.length > 0) {
+    summaryEl.className = 'rewards-summary';
+    summaryEl.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      ${unredeemedCards.length} free coffee${unredeemedCards.length > 1 ? 's' : ''} available
+    `;
+  } else {
+    summaryEl.className = 'rewards-summary no-rewards';
+    summaryEl.innerHTML = 'No rewards yet';
+  }
 
+  // Render cards
+  const cardsEl = document.getElementById('detail-cards');
+  let cardsHTML = '';
+
+  // Active card first
+  if (activeCard) {
+    cardsHTML += renderStampCard(activeCard, 'active');
+  } else {
+    // Show empty card placeholder
+    cardsHTML += renderStampCard({ stamps_collected: 0, is_complete: false }, 'active');
+  }
+
+  // Unredeemed completed cards
+  unredeemedCards.forEach(card => {
+    cardsHTML += renderStampCard(card, 'unredeemed');
+  });
+
+  // Redeemed cards (limit to last 3)
+  redeemedCards.slice(0, 3).forEach(card => {
+    cardsHTML += renderStampCard(card, 'redeemed');
+  });
+
+  cardsEl.innerHTML = cardsHTML;
+
+  // Show/hide redeem button
   const redeemBtn = document.getElementById('redeem-btn');
-  redeemBtn.style.display = redeemableCard ? 'flex' : 'none';
+  redeemBtn.style.display = unredeemedCards.length > 0 ? 'flex' : 'none';
 }
 
-function deselectCustomer() {
+function renderStampCard(card, type) {
+  const stamps = card.stamps_collected || 0;
+  
+  let labelHTML = '';
+  if (type === 'active') {
+    labelHTML = '<span class="card-label current">Current card</span>';
+  } else if (type === 'unredeemed') {
+    labelHTML = `<span class="card-label free-coffee">
+      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Free coffee available!
+    </span>`;
+  } else if (type === 'redeemed') {
+    labelHTML = `<span class="card-label redeemed">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Redeemed
+    </span>`;
+  }
+
+  let slotsHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const isFilled = i < stamps;
+    const isLast = i === 9;
+    
+    let innerHTML = '';
+    if (isFilled) {
+      if (isLast) {
+        innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="#c9a84c" stroke="#c9a84c"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+      } else {
+        innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 8h1a4 4 0 110 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/></svg>`;
+      }
+    } else if (isLast) {
+      innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    slotsHTML += `<div class="mini-stamp-slot${isFilled ? ' filled' : ''}">${innerHTML}</div>`;
+  }
+
+  return `
+    <div class="staff-stamp-card ${type}">
+      ${labelHTML}
+      <div class="mini-stamps-grid">${slotsHTML}</div>
+    </div>
+  `;
+}
+
+function showCustomerList() {
   selectedCustomer = null;
-  document.getElementById('selected-customer').style.display = 'none';
+  document.getElementById('staff-detail-view').style.display = 'none';
+  document.getElementById('staff-list-view').style.display = 'flex';
   document.getElementById('staff-feedback').style.display = 'none';
+  document.getElementById('staff-search-input').value = '';
+  
+  // Refresh the list in case stamps changed
+  loadStaffView();
 }
 
 async function awardStamp(ownCup) {
@@ -416,13 +554,17 @@ function stopScanner() {
 async function lookupCustomerByQR(uuid) {
   const { data: profile } = await sb
     .from('profiles')
-    .select('id, name')
+    .select('id, name, email')
     .eq('id', uuid)
     .eq('role', 'customer')
     .single();
 
   if (profile) {
-    selectCustomer(profile.id, profile.name);
+    // Add to allCustomers if not already there
+    if (!allCustomers.find(c => c.id === profile.id)) {
+      allCustomers.push(profile);
+    }
+    selectCustomer(profile.id);
   } else {
     alert('Customer not found');
   }
@@ -466,13 +608,14 @@ async function init() {
 async function onSignIn(user) {
   // Prevent double-loading
   if (currentProfile && currentUser?.id === user.id) {
-    // Already signed in, just make sure correct screen is showing
-    if (currentProfile.role === 'staff' || currentProfile.role === 'admin') {
-      showScreen('staff-screen');
-    } else {
-      showScreen('customer-screen');
-    }
-    return;
+  // Already signed in, just make sure correct screen is showing
+  if (currentProfile.role === 'staff' || currentProfile.role === 'admin') {
+  showScreen('staff-screen');
+  loadStaffView();
+  } else {
+  showScreen('customer-screen');
+  }
+  return;
   }
 
   currentUser = user;
@@ -527,10 +670,11 @@ async function onSignIn(user) {
   }
 
   if (profile.role === 'staff' || profile.role === 'admin') {
-    showScreen('staff-screen');
+  showScreen('staff-screen');
+  await loadStaffView();
   } else {
-    showScreen('customer-screen');
-    await loadCustomerView();
+  showScreen('customer-screen');
+  await loadCustomerView();
   }
 }
 
