@@ -220,6 +220,42 @@ body {
   border: 1px solid rgba(185, 64, 64, 0.15);
 }
 
+/* Dev panel — only shown in non-prod environments */
+.dev-panel {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed var(--border);
+  text-align: center;
+}
+
+.dev-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.dev-btn {
+  display: block;
+  width: 100%;
+  padding: 0.625rem;
+  margin-bottom: 0.5rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  color: var(--mid);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.dev-btn:hover {
+  background: var(--sage-wash);
+  border-color: var(--sage-light);
+  color: var(--sage-dark);
+}
+
 .auth-toggle {
   text-align: center;
   font-size: 0.875rem;

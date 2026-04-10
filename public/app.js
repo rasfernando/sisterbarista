@@ -12,6 +12,25 @@ let currentProfile = null;
 let selectedCustomer = null;
 
 // ============================================
+// Dev Mode
+// ============================================
+
+const IS_DEV = !window.location.hostname.includes('sisterbarista.thirdharmonic.co.uk');
+
+const DEV_ACCOUNTS = {
+  staff:    { email: 'dev-staff@test.local',    password: 'devpass123' },
+  customer: { email: 'dev-customer@test.local', password: 'devpass123' }
+};
+
+async function devSignIn(role) {
+  const { email, password } = DEV_ACCOUNTS[role];
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    alert('Dev sign-in failed: ' + error.message);
+  }
+}
+
+// ============================================
 // Auth
 // ============================================
 
@@ -576,6 +595,12 @@ async function init() {
   if (session && !currentProfile) {
     console.log('Fallback: found existing session');
     await onSignIn(session.user);
+  }
+
+  // Show dev panel if in dev environment
+  if (IS_DEV) {
+    const devPanel = document.getElementById('dev-panel');
+    if (devPanel) devPanel.style.display = 'block';
   }
 }
 
