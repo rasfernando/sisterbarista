@@ -84,7 +84,7 @@ async function loadCustomerView() {
   document.getElementById('customer-name').textContent = profile.name || 'there';
 
   // Get active stamp card
-  const { data: cards } = await supabase
+  const { data: cards } = await sb
     .from('stamp_cards')
     .select('*')
     .eq('customer_id', currentUser.id)
@@ -112,7 +112,7 @@ async function loadCustomerView() {
   rewardBanner.style.display = redeemableCard ? 'flex' : 'none';
 
   // Load recent activity
-  const { data: events } = await supabase
+  const { data: events } = await sb
     .from('stamp_events')
     .select('*')
     .eq('customer_id', currentUser.id)
@@ -180,7 +180,7 @@ async function searchCustomers(query) {
 
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(async () => {
-    const { data: customers } = await supabase
+    const { data: customers } = await sb
       .from('profiles')
       .select('id, name')
       .eq('role', 'customer')
@@ -194,7 +194,7 @@ async function searchCustomers(query) {
 
     // Get active cards for these customers
     const customerIds = customers.map(c => c.id);
-    const { data: cards } = await supabase
+    const { data: cards } = await sb
       .from('stamp_cards')
       .select('customer_id, stamps_collected, is_complete, reward_redeemed')
       .in('customer_id', customerIds)
@@ -230,7 +230,7 @@ async function selectCustomer(id, name) {
 async function refreshSelectedCustomer() {
   if (!selectedCustomer) return;
 
-  const { data: cards } = await supabase
+  const { data: cards } = await sb
     .from('stamp_cards')
     .select('*')
     .eq('customer_id', selectedCustomer.id)
@@ -388,7 +388,7 @@ function stopScanner() {
 }
 
 async function lookupCustomerByQR(uuid) {
-  const { data: profile } = await supabase
+  const { data: profile } = await sb
     .from('profiles')
     .select('id, name')
     .eq('id', uuid)
@@ -433,7 +433,7 @@ async function onSignIn(user) {
   let profile = null;
   let attempts = 0;
   while (!profile && attempts < 5) {
-    const { data } = await supabase
+    const { data } = await sb
       .from('profiles')
       .select('*')
       .eq('id', user.id)
@@ -455,7 +455,7 @@ async function onSignIn(user) {
   // Update name if it changed
   const metaName = user.user_metadata?.name;
   if (metaName && metaName !== profile.name) {
-    await supabase
+    await sb
       .from('profiles')
       .update({ name: metaName })
       .eq('id', user.id);
