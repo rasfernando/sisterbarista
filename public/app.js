@@ -5,7 +5,7 @@
 const SUPABASE_URL = 'https://utgjttxkajslmillhgtj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0Z2p0dHhrYWpzbG1pbGxoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDUyMzIsImV4cCI6MjA5MTM4MTIzMn0.iNjVX6tGSPX4s4jS1i46ja5f3LXSjWppQzcOcVQ6VIg';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentProfile = null;
@@ -37,7 +37,7 @@ async function handleAuth() {
   btn.disabled = true;
   btn.textContent = 'Sending...';
 
-  const { error } = await supabase.auth.signInWithOtp({
+  const { error } = await sb.auth.signInWithOtp({
     email,
     options: {
       data: { name },
@@ -59,7 +59,7 @@ async function handleAuth() {
 }
 
 async function handleLogout() {
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   currentUser = null;
   currentProfile = null;
   selectedCustomer = null;
@@ -259,7 +259,7 @@ async function awardStamp(ownCup) {
 
   const feedbackEl = document.getElementById('staff-feedback');
 
-  const { data, error } = await supabase.rpc('award_stamp', {
+  const { data, error } = await sb.rpc('award_stamp', {
     p_customer_id: selectedCustomer.id,
     p_staff_id: currentUser.id,
     p_own_cup: ownCup
@@ -292,7 +292,7 @@ async function redeemReward() {
 
   const feedbackEl = document.getElementById('staff-feedback');
 
-  const { data, error } = await supabase.rpc('redeem_reward', {
+  const { data, error } = await sb.rpc('redeem_reward', {
     p_customer_id: selectedCustomer.id,
     p_staff_id: currentUser.id
   });
@@ -412,14 +412,14 @@ function isValidUUID(str) {
 
 async function init() {
   // Check for existing session
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await sb.auth.getSession();
 
   if (session) {
     await onSignIn(session.user);
   }
 
   // Listen for auth changes (handles magic link redirect)
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       await onSignIn(session.user);
     }
