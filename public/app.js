@@ -34,10 +34,12 @@ async function devSignIn(role) {
 // Auth
 // ============================================
 
+let isSignUpMode = false;
+
 async function handleAuth() {
-  const nameEl = document.getElementById('auth-name');
   const email = document.getElementById('auth-email').value.trim();
-  const name = nameEl ? nameEl.value.trim() : '';
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
   const errorEl = document.getElementById('auth-error');
   const btn = document.getElementById('auth-submit');
 
@@ -48,42 +50,58 @@ async function handleAuth() {
     errorEl.style.display = 'block';
     return;
   }
-
-  btn.disabled = true;
-  btn.textContent = 'Sending magic link...';
-
-  const options = {
-    emailRedirectTo: window.location.origin
-  };
-  if (name) {
-    options.data = { name };
-  }
-
-  const { error } = await sb.auth.signInWithOtp({ email, options });
-
-  if (error) {
-    errorEl.textContent = error.message;
+  if (!password || password.length < 6) {
+    errorEl.textContent = 'Password must be at least 6 characters';
     errorEl.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Send magic link';
+    return;
+  }
+  if (isSignUpMode && !name) {
+    errorEl.textContent = 'Please enter your name';
+    errorEl.style.display = 'block';
     return;
   }
 
-  document.getElementById('auth-step-email').style.display = 'none';
-  document.getElementById('auth-step-otp').style.display = 'block';
-  document.getElementById('auth-sent-email').textContent = email;
+  btn.disabled = true;
+  btn.textContent = isSignUpMode ? 'Creating account...' : 'Signing in...';
+
+  let result;
+  if (isSignUpMode) {
+    result = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { name } }
+    });
+  } else {
+    result = await sb.auth.signInWithPassword({ email, password });
+  }
+
+  if (result.error) {
+    errorEl.textContent = result.error.message;
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = isSignUpMode ? 'Create account' : 'Sign in';
+    return;
+  }
 }
 
-function showSignInMode() {
-  document.getElementById('auth-name').style.display = 'none';
-  document.getElementById('auth-submit').textContent = 'Send magic link';
-  document.getElementById('auth-toggle').innerHTML = 'New here? <a href="#" onclick="showSignUpMode(); return false;">Sign up</a>';
-}
+function toggleSignUpMode() {
+  isSignUpMode = !isSignUpMode;
+  const nameEl = document.getElementById('auth-name');
+  const btn = document.getElementById('auth-submit');
+  const toggle = document.getElementById('auth-toggle');
+  const passwordEl = document.getElementById('auth-password');
 
-function showSignUpMode() {
-  document.getElementById('auth-name').style.display = 'block';
-  document.getElementById('auth-submit').textContent = 'Get started';
-  document.getElementById('auth-toggle').innerHTML = 'Already a member? <a href="#" onclick="showSignInMode(); return false;">Sign in</a>';
+  if (isSignUpMode) {
+    nameEl.style.display = 'block';
+    btn.textContent = 'Create account';
+    passwordEl.autocomplete = 'new-password';
+    toggle.innerHTML = 'Already a member? <a href="#" onclick="toggleSignUpMode(); return false;">Sign in</a>';
+  } else {
+    nameEl.style.display = 'none';
+    btn.textContent = 'Sign in';
+    passwordEl.autocomplete = 'current-password';
+    toggle.innerHTML = 'New here? <a href="#" onclick="toggleSignUpMode(); return false;">Sign up</a>';
+  }
 }
 
 async function handleLogout() {
@@ -582,7 +600,7 @@ async function redeemReward() {
 // ============================================
 
 async function init() {
-  // Set up auth listener FIRST — this catches the magic link redirect
+  // Set up auth listener
   // and also the INITIAL_SESSION event
   sb.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth event:', event, session ? 'has session' : 'no session');

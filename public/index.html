@@ -29,17 +29,12 @@
           <p class="tagline">Your loyalty, rewarded</p>
         </div>
         <div id="auth-form">
-          <div id="auth-step-email">
-            <input type="text" id="auth-name" placeholder="Your first name" autocomplete="given-name" style="display:none;">
-            <input type="email" id="auth-email" placeholder="Your email address" autocomplete="email">
-            <button id="auth-submit" onclick="handleAuth()">Send magic link</button>
-            <p id="auth-toggle" class="auth-toggle">New here? <a href="#" onclick="showSignUpMode(); return false;">Sign up</a></p>
-          </div>
-          <div id="auth-step-otp" style="display:none;">
-            <p class="auth-message">Check your email!</p>
-            <p class="auth-submessage">We&apos;ve sent a magic link to <strong id="auth-sent-email"></strong>. Click it to sign in.</p>
-          </div>
+          <input type="text" id="auth-name" placeholder="Your first name" autocomplete="given-name" style="display:none;">
+          <input type="email" id="auth-email" placeholder="Your email address" autocomplete="email">
+          <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
+          <button id="auth-submit" onclick="handleAuth()">Sign in</button>
           <div id="auth-error" class="error-message" style="display:none;"></div>
+          <p id="auth-toggle" class="auth-toggle">New here? <a href="#" onclick="toggleSignUpMode(); return false;">Sign up</a></p>
         </div>
         <div id="dev-panel" class="dev-panel" style="display:none;">
           <p class="dev-label">Dev mode</p>
