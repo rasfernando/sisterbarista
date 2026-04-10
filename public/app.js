@@ -197,10 +197,20 @@ async function loadCustomerView() {
 
 function renderCustomerQR() {
   const canvas = document.getElementById('customer-qr');
+  if (!canvas) return;
+
+  if (typeof QRCode === 'undefined') {
+    console.warn('QRCode library not loaded');
+    canvas.style.display = 'none';
+    return;
+  }
+
   QRCode.toCanvas(canvas, currentUser.id, {
     width: 160,
     margin: 2,
     color: { dark: '#2a2a2a', light: '#ffffff' }
+  }, (err) => {
+    if (err) console.error('QR render error:', err);
   });
 }
 
