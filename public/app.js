@@ -151,7 +151,7 @@ async function loadCustomerView() {
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
       });
       const label = e.own_cup
-        ? `+${e.stamps_awarded} stamps (own cup bonus!)`
+        ? `+${e.stamps_awarded} stamp (own cup bonus!)`
         : `+${e.stamps_awarded} stamp`;
       const ecoIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 2px;"><path d="M7 21h10"/><path d="M12 21V11"/><path d="M5 11l2.5-7h9L19 11"/></svg>`;
       return `
@@ -167,27 +167,6 @@ async function loadCustomerView() {
   } else {
     activityList.innerHTML = '<p class="empty-state">No stamps yet - grab a coffee!</p>';
   }
-}
-
-// ============================================
-// QR Code
-// ============================================
-
-function showQR() {
-  const modal = document.getElementById('qr-modal');
-  modal.style.display = 'flex';
-  document.getElementById('qr-name').textContent = currentProfile.name;
-
-  const canvas = document.getElementById('qr-canvas');
-  QRCode.toCanvas(canvas, currentUser.id, {
-    width: 200,
-    margin: 2,
-    color: { dark: '#2d1810', light: '#ffffff' }
-  });
-}
-
-function closeQR() {
-  document.getElementById('qr-modal').style.display = 'none';
 }
 
 // ============================================
@@ -333,7 +312,16 @@ async function refreshSelectedCustomer() {
     summaryEl.innerHTML = 'No rewards yet';
   }
 
-  // Render cards
+  // Show redeemed count as a small badge
+  const redeemedCountEl = document.getElementById('detail-redeemed-count');
+  if (redeemedCards.length > 0) {
+    redeemedCountEl.textContent = `${redeemedCards.length} free coffee${redeemedCards.length > 1 ? 's' : ''} redeemed`;
+    redeemedCountEl.style.display = 'block';
+  } else {
+    redeemedCountEl.style.display = 'none';
+  }
+
+  // Render cards — active + unredeemed only
   const cardsEl = document.getElementById('detail-cards');
   let cardsHTML = '';
 
@@ -341,18 +329,12 @@ async function refreshSelectedCustomer() {
   if (activeCard) {
     cardsHTML += renderStampCard(activeCard, 'active');
   } else {
-    // Show empty card placeholder
     cardsHTML += renderStampCard({ stamps_collected: 0, is_complete: false }, 'active');
   }
 
   // Unredeemed completed cards
   unredeemedCards.forEach(card => {
     cardsHTML += renderStampCard(card, 'unredeemed');
-  });
-
-  // Redeemed cards (limit to last 3)
-  redeemedCards.slice(0, 3).forEach(card => {
-    cardsHTML += renderStampCard(card, 'redeemed');
   });
 
   cardsEl.innerHTML = cardsHTML;
@@ -454,6 +436,8 @@ async function awardStamp(ownCup) {
 async function redeemReward() {
   if (!selectedCustomer) return;
 
+  if (!confirm(`Redeem free coffee for ${selectedCustomer.name}?`)) return;
+
   const feedbackEl = document.getElementById('staff-feedback');
 
   const { data, error } = await sb.rpc('redeem_reward', {
@@ -482,96 +466,6 @@ async function redeemReward() {
   await refreshSelectedCustomer();
 
   setTimeout(() => { feedbackEl.style.display = 'none'; }, 3000);
-}
-
-// ============================================
-// QR Scanner (Staff)
-// ============================================
-
-let scannerStream = null;
-let scannerInterval = null;
-
-async function toggleStaffScanner() {
-  const scannerEl = document.getElementById('staff-scanner');
-  const video = document.getElementById('scanner-video');
-
-  if (scannerStream) {
-    stopScanner();
-    return;
-  }
-
-  scannerEl.style.display = 'block';
-
-  try {
-    scannerStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment' }
-    });
-    video.srcObject = scannerStream;
-
-    // Use BarcodeDetector API if available
-    if ('BarcodeDetector' in window) {
-      const detector = new BarcodeDetector({ formats: ['qr_code'] });
-      scannerInterval = setInterval(async () => {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          try {
-            const barcodes = await detector.detect(video);
-            if (barcodes.length > 0) {
-              const uuid = barcodes[0].rawValue;
-              if (isValidUUID(uuid)) {
-                stopScanner();
-                await lookupCustomerByQR(uuid);
-              }
-            }
-          } catch (e) { /* ignore detection errors */ }
-        }
-      }, 500);
-    } else {
-      // Fallback: prompt for manual entry
-      stopScanner();
-      const uuid = prompt('QR scanning not supported on this device.\nEnter customer ID manually:');
-      if (uuid && isValidUUID(uuid)) {
-        await lookupCustomerByQR(uuid);
-      }
-    }
-  } catch (err) {
-    stopScanner();
-    alert('Could not access camera. Please use customer search instead.');
-  }
-}
-
-function stopScanner() {
-  if (scannerStream) {
-    scannerStream.getTracks().forEach(t => t.stop());
-    scannerStream = null;
-  }
-  if (scannerInterval) {
-    clearInterval(scannerInterval);
-    scannerInterval = null;
-  }
-  document.getElementById('staff-scanner').style.display = 'none';
-}
-
-async function lookupCustomerByQR(uuid) {
-  const { data: profile } = await sb
-    .from('profiles')
-    .select('id, name, email')
-    .eq('id', uuid)
-    .eq('role', 'customer')
-    .single();
-
-  if (profile) {
-    // Add to allCustomers if not already there
-    if (!allCustomers.find(c => c.id === profile.id)) {
-      allCustomers.push(profile);
-    }
-    selectCustomer(profile.id);
-  } else {
-    alert('Customer not found');
-  }
-}
-
-function isValidUUID(str) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
 
 // ============================================

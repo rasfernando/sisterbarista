@@ -11,9 +11,8 @@
   <meta name="description" content="Sister Barista loyalty rewards - collect stamps, earn free coffee">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -23,9 +22,8 @@
       <div class="auth-container">
         <div class="logo">
           <div class="logo-image">
-            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-LLjWJhlfp0XRwsGcGUx8AlpUvQ8vgC.png" alt="Sister Barista Logo" />
+            <img src="/logo.png" alt="Sister Barista" />
           </div>
-          <h1>Sister Barista</h1>
           <p class="tagline">Your loyalty, rewarded</p>
         </div>
         <div id="auth-form">
@@ -47,18 +45,7 @@
     <!-- Customer Screen -->
     <div id="customer-screen" class="screen">
       <header class="app-header">
-        <h2>Sister Barista</h2>
-        <button class="icon-btn" onclick="showQR()" title="Show QR code" aria-label="Show loyalty QR code">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="3" height="3"/>
-            <path d="M20 14v3h-3"/>
-            <path d="M14 20h3"/>
-            <path d="M20 20h.01"/>
-          </svg>
-        </button>
+        <img src="/name.png" alt="Sister Barista" class="header-logo">
       </header>
 
       <div class="card-section">
@@ -102,40 +89,14 @@
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
     </div>
 
-    <!-- QR Modal -->
-    <div id="qr-modal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="qr-title">
-      <div class="modal-content">
-        <button class="modal-close" onclick="closeQR()" aria-label="Close modal">&times;</button>
-        <h3 id="qr-title">Your loyalty QR</h3>
-        <p>Show this to your barista</p>
-        <canvas id="qr-canvas"></canvas>
-        <p class="qr-name" id="qr-name"></p>
-      </div>
-    </div>
-
     <!-- Staff Screen -->
     <div id="staff-screen" class="screen">
       <header class="app-header">
-        <h2>Sister Barista <span class="badge">Staff</span></h2>
-        <button class="icon-btn" onclick="toggleStaffScanner()" title="Scan QR" aria-label="Scan customer QR code">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 7V5a2 2 0 012-2h2"/>
-            <path d="M17 3h2a2 2 0 012 2v2"/>
-            <path d="M21 17v2a2 2 0 01-2 2h-2"/>
-            <path d="M7 21H5a2 2 0 01-2-2v-2"/>
-            <line x1="7" y1="12" x2="17" y2="12"/>
-          </svg>
-        </button>
-      </header>
-
-      <!-- QR Scanner -->
-      <div id="staff-scanner" style="display:none;">
-        <div class="scanner-container">
-          <video id="scanner-video" autoplay playsinline></video>
-          <div class="scanner-overlay"></div>
-          <button class="scanner-close" onclick="toggleStaffScanner()">Cancel</button>
+        <div class="header-brand">
+          <img src="/name.png" alt="Sister Barista" class="header-logo">
+          <span class="badge">Staff</span>
         </div>
-      </div>
+      </header>
 
       <!-- Customer List View -->
       <div id="staff-list-view">
@@ -163,6 +124,7 @@
           <div class="detail-info">
             <h3 id="detail-name"></h3>
             <p id="detail-email" class="detail-email"></p>
+            <p id="detail-redeemed-count" class="detail-redeemed-count" style="display:none;"></p>
             <div id="detail-rewards-summary" class="rewards-summary"></div>
           </div>
 

@@ -124,13 +124,6 @@ body {
   object-fit: contain;
 }
 
-.logo h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--charcoal);
-}
 
 .tagline {
   font-size: 0.95rem;
@@ -261,11 +254,12 @@ body {
   z-index: 10;
 }
 
-.app-header h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--charcoal);
+.header-logo {
+  height: 28px;
+  width: auto;
+}
+
+.header-brand {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -541,7 +535,6 @@ body {
 }
 
 .modal-content h3 {
-  font-family: 'Playfair Display', serif;
   font-size: 1.375rem;
   margin-bottom: 0.25rem;
   color: var(--charcoal);
@@ -755,7 +748,14 @@ body {
 .detail-email {
   font-size: 0.875rem;
   color: var(--muted);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-redeemed-count {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 0.75rem 0;
+  font-style: italic;
 }
 
 .rewards-summary {
@@ -1087,10 +1087,6 @@ body {
     height: 150px;
   }
 
-  .logo h1 {
-    font-size: 2.25rem;
-  }
-
   .stamps-grid {
     gap: 1rem;
   }
@@ -1109,9 +1105,5 @@ body {
   .logo-image {
     width: 96px;
     height: 96px;
-  }
-
-  .logo h1 {
-    font-size: 1.75rem;
   }
 }
