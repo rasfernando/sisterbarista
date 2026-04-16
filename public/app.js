@@ -10,6 +10,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentProfile = null;
 let selectedCustomer = null;
+let isResettingPassword = false;
 
 // ============================================
 // Dev Mode
@@ -158,7 +159,9 @@ async function handleResetPassword() {
     return;
   }
 
-  // Password updated — sign them in normally
+  // Password updated — sign out and show login with success message
+  isResettingPassword = false;
+  await sb.auth.signOut();
   document.getElementById('reset-password-form').style.display = 'none';
   document.getElementById('auth-form').style.display = 'block';
   const successEl = document.getElementById('auth-success');
@@ -664,11 +667,13 @@ async function redeemReward() {
 async function init() {
   // Set up auth listener with debounce to prevent race conditions
   let signInTimer = null;
+
   sb.auth.onAuthStateChange((event, session) => {
     console.log('Auth event:', event, session ? 'has session' : 'no session');
 
     if (event === 'SIGNED_OUT') {
       clearTimeout(signInTimer);
+      isResettingPassword = false;
       currentUser = null;
       currentProfile = null;
       showScreen('auth-screen');
@@ -676,13 +681,18 @@ async function init() {
     }
 
     if (event === 'PASSWORD_RECOVERY') {
-      // User clicked reset link in email — show reset form
+      // User clicked reset link in email — block normal sign-in and show reset form
+      clearTimeout(signInTimer);
+      isResettingPassword = true;
       showScreen('auth-screen');
       document.getElementById('auth-form').style.display = 'none';
       document.getElementById('dev-panel').style.display = 'none';
       document.getElementById('reset-password-form').style.display = 'block';
       return;
     }
+
+    // Don't process sign-in events while user is resetting their password
+    if (isResettingPassword) return;
 
     if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session) {
       clearTimeout(signInTimer);
