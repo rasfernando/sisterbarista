@@ -29,7 +29,8 @@
           <p class="tagline">Your loyalty, rewarded</p>
         </div>
         <div id="auth-form">
-          <input type="text" id="auth-name" placeholder="Your first name" autocomplete="given-name" style="display:none;">
+          <input type="text" id="auth-first-name" placeholder="First name" autocomplete="given-name" style="display:none;">
+          <input type="text" id="auth-last-name" placeholder="Surname" autocomplete="family-name" style="display:none;">
           <input type="email" id="auth-email" placeholder="Your email address" autocomplete="email">
           <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
           <button id="auth-submit" onclick="handleAuth()">Sign in</button>
@@ -130,10 +131,23 @@
         <button class="scanner-cancel" onclick="toggleScanner()">Cancel</button>
       </div>
 
+      <!-- Add Customer Form (hidden by default) -->
+      <div id="add-customer-form" class="add-customer-form" style="display:none;">
+        <h4>New customer</h4>
+        <input type="text" id="new-customer-first" placeholder="First name" autocomplete="off">
+        <input type="text" id="new-customer-last" placeholder="Surname" autocomplete="off">
+        <div class="add-customer-actions">
+          <button class="action-btn stamp-btn" onclick="createCustomer()">Add &amp; stamp</button>
+          <button class="cancel-link" onclick="hideAddCustomer()">Cancel</button>
+        </div>
+        <div id="add-customer-error" class="error-message" style="display:none;"></div>
+      </div>
+
       <!-- Customer List View -->
       <div id="staff-list-view">
         <div class="staff-search">
           <input type="text" id="staff-search-input" placeholder="Search customer by name..." oninput="filterCustomers(this.value)" aria-label="Search customers">
+          <button class="add-customer-btn" onclick="showAddCustomer()" title="Add customer">+</button>
         </div>
         <div id="customer-list" class="customer-list">
           <p class="empty-state">Loading customers...</p>
@@ -154,8 +168,32 @@
 
         <div class="customer-detail-card">
           <div class="detail-info">
-            <h3 id="detail-name"></h3>
+            <div class="name-row">
+              <h3 id="detail-name"></h3>
+              <button class="edit-name-btn" onclick="startEditName()" title="Edit name" aria-label="Edit name">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  <path d="m15 5 4 4"/>
+                </svg>
+              </button>
+            </div>
+            <div id="edit-name-form" class="edit-name-form" style="display:none;">
+              <input type="text" id="edit-first-name" placeholder="First name" onkeydown="if(event.key==='Escape')cancelEditName();">
+              <input type="text" id="edit-last-name" placeholder="Surname" onkeydown="if(event.key==='Enter')saveEditName();if(event.key==='Escape')cancelEditName();">
+              <div class="edit-name-actions">
+                <button class="invite-btn" onclick="saveEditName()">Save</button>
+                <button class="cancel-link" onclick="cancelEditName()">Cancel</button>
+              </div>
+            </div>
             <p id="detail-email" class="detail-email"></p>
+            <div id="invite-section" style="display:none;">
+              <div id="invite-form" class="invite-form">
+                <input type="email" id="invite-email" placeholder="Customer's email" autocomplete="off">
+                <button class="invite-btn" onclick="inviteCustomer()">Send invite</button>
+              </div>
+              <div id="invite-error" class="error-message" style="display:none;"></div>
+              <div id="invite-success" class="success-message" style="display:none;"></div>
+            </div>
             <p id="detail-redeemed-count" class="detail-redeemed-count" style="display:none;"></p>
             <div id="detail-rewards-summary" class="rewards-summary"></div>
           </div>

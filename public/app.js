@@ -40,7 +40,8 @@ let isSignUpMode = false;
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
-  const name = document.getElementById('auth-name').value.trim();
+  const firstName = document.getElementById('auth-first-name').value.trim();
+  const lastName = document.getElementById('auth-last-name').value.trim();
   const errorEl = document.getElementById('auth-error');
   const btn = document.getElementById('auth-submit');
 
@@ -56,8 +57,8 @@ async function handleAuth() {
     errorEl.style.display = 'block';
     return;
   }
-  if (isSignUpMode && !name) {
-    errorEl.textContent = 'Please enter your name';
+  if (isSignUpMode && !firstName) {
+    errorEl.textContent = 'Please enter your first name';
     errorEl.style.display = 'block';
     return;
   }
@@ -65,12 +66,14 @@ async function handleAuth() {
   btn.disabled = true;
   btn.textContent = isSignUpMode ? 'Creating account...' : 'Signing in...';
 
+  const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+
   let result;
   if (isSignUpMode) {
     result = await sb.auth.signUp({
       email,
       password,
-      options: { data: { name } }
+      options: { data: { name: fullName } }
     });
   } else {
     result = await sb.auth.signInWithPassword({ email, password });
@@ -87,18 +90,21 @@ async function handleAuth() {
 
 function toggleSignUpMode() {
   isSignUpMode = !isSignUpMode;
-  const nameEl = document.getElementById('auth-name');
+  const firstEl = document.getElementById('auth-first-name');
+  const lastEl = document.getElementById('auth-last-name');
   const btn = document.getElementById('auth-submit');
   const toggle = document.getElementById('auth-toggle');
   const passwordEl = document.getElementById('auth-password');
 
   if (isSignUpMode) {
-    nameEl.style.display = 'block';
+    firstEl.style.display = 'block';
+    lastEl.style.display = 'block';
     btn.textContent = 'Create account';
     passwordEl.autocomplete = 'new-password';
     toggle.innerHTML = 'Already a member? <a href="#" onclick="toggleSignUpMode(); return false;">Sign in</a>';
   } else {
-    nameEl.style.display = 'none';
+    firstEl.style.display = 'none';
+    lastEl.style.display = 'none';
     btn.textContent = 'Sign in';
     passwordEl.autocomplete = 'current-password';
     toggle.innerHTML = 'New here? <a href="#" onclick="toggleSignUpMode(); return false;">Sign up</a>';
@@ -167,6 +173,180 @@ async function handleResetPassword() {
   const successEl = document.getElementById('auth-success');
   successEl.textContent = 'Password updated! You can now sign in.';
   successEl.style.display = 'block';
+}
+
+// ============================================
+// Staff: Add Customer
+// ============================================
+
+function showAddCustomer() {
+  document.getElementById('add-customer-form').style.display = 'block';
+  document.getElementById('staff-list-view').style.display = 'none';
+  document.getElementById('new-customer-first').focus();
+}
+
+function hideAddCustomer() {
+  document.getElementById('add-customer-form').style.display = 'none';
+  document.getElementById('staff-list-view').style.display = 'flex';
+  document.getElementById('new-customer-first').value = '';
+  document.getElementById('new-customer-last').value = '';
+  document.getElementById('add-customer-error').style.display = 'none';
+}
+
+async function createCustomer() {
+  const first = document.getElementById('new-customer-first').value.trim();
+  const last = document.getElementById('new-customer-last').value.trim();
+  const errorEl = document.getElementById('add-customer-error');
+
+  errorEl.style.display = 'none';
+
+  if (!first) {
+    errorEl.textContent = 'Please enter a first name';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const fullName = last ? `${first} ${last}` : first;
+  const newId = crypto.randomUUID();
+
+  // Create profile directly (no auth user needed)
+  const { error } = await sb
+    .from('profiles')
+    .insert({ id: newId, name: fullName, role: 'customer' });
+
+  if (error) {
+    errorEl.textContent = 'Could not create customer: ' + error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // Add to local cache and select them
+  const newCustomer = { id: newId, name: fullName, email: null };
+  allCustomers.push(newCustomer);
+  allCustomers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  hideAddCustomer();
+  selectCustomer(newId);
+
+  // Auto-award first stamp
+  await awardStamp(false);
+}
+
+// ============================================
+// Staff: Edit Customer Name
+// ============================================
+
+function startEditName() {
+  if (!selectedCustomer) return;
+  const nameRow = document.querySelector('.name-row');
+  nameRow.style.display = 'none';
+  const form = document.getElementById('edit-name-form');
+  const firstInput = document.getElementById('edit-first-name');
+  const lastInput = document.getElementById('edit-last-name');
+
+  // Split existing name into first + last
+  const parts = (selectedCustomer.name || '').split(' ');
+  firstInput.value = parts[0] || '';
+  lastInput.value = parts.slice(1).join(' ') || '';
+
+  form.style.display = 'block';
+  firstInput.focus();
+  firstInput.select();
+}
+
+function cancelEditName() {
+  document.getElementById('edit-name-form').style.display = 'none';
+  document.querySelector('.name-row').style.display = 'flex';
+}
+
+async function saveEditName() {
+  const first = document.getElementById('edit-first-name').value.trim();
+  const last = document.getElementById('edit-last-name').value.trim();
+
+  if (!first || !selectedCustomer) {
+    cancelEditName();
+    return;
+  }
+
+  const newName = last ? `${first} ${last}` : first;
+
+  const { error } = await sb
+    .from('profiles')
+    .update({ name: newName })
+    .eq('id', selectedCustomer.id);
+
+  if (error) {
+    alert('Could not update name: ' + error.message);
+    cancelEditName();
+    return;
+  }
+
+  // Update local state
+  selectedCustomer.name = newName;
+  const cached = allCustomers.find(c => c.id === selectedCustomer.id);
+  if (cached) cached.name = newName;
+
+  document.getElementById('detail-name').textContent = newName;
+  cancelEditName();
+}
+
+// ============================================
+// Staff: Invite Customer
+// ============================================
+
+async function inviteCustomer() {
+  const email = document.getElementById('invite-email').value.trim();
+  const errorEl = document.getElementById('invite-error');
+  const successEl = document.getElementById('invite-success');
+
+  errorEl.style.display = 'none';
+  successEl.style.display = 'none';
+
+  if (!email) {
+    errorEl.textContent = 'Please enter an email address';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    errorEl.textContent = 'Not authenticated';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/invite-customer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        profile_id: selectedCustomer.id,
+        email: email,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      errorEl.textContent = result.error || 'Failed to send invite';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    successEl.textContent = 'Invite sent! They can set a password from the email.';
+    successEl.style.display = 'block';
+    document.getElementById('invite-form').style.display = 'none';
+
+    // Update local state
+    selectedCustomer.email = email;
+    document.getElementById('detail-email').textContent = email;
+  } catch (err) {
+    errorEl.textContent = 'Network error: ' + err.message;
+    errorEl.style.display = 'block';
+  }
 }
 
 async function handleLogout() {
@@ -471,6 +651,19 @@ async function selectCustomer(id) {
 
   document.getElementById('detail-name').textContent = customer.name || 'Unnamed';
   document.getElementById('detail-email').textContent = customer.email || '';
+
+  // Show invite section if customer has no email (staff-created, unclaimed)
+  const inviteSection = document.getElementById('invite-section');
+  const inviteForm = document.getElementById('invite-form');
+  if (!customer.email) {
+    inviteSection.style.display = 'block';
+    inviteForm.style.display = 'flex';
+    document.getElementById('invite-email').value = '';
+    document.getElementById('invite-error').style.display = 'none';
+    document.getElementById('invite-success').style.display = 'none';
+  } else {
+    inviteSection.style.display = 'none';
+  }
 
   await refreshSelectedCustomer();
 }

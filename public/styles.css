@@ -1208,3 +1208,146 @@ body {
     height: 96px;
   }
 }
+
+/* Add Customer Form */
+.add-customer-form {
+  padding: 1.25rem;
+  background: white;
+  border-radius: var(--radius);
+  margin: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.add-customer-form h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.add-customer-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: inherit;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+
+.add-customer-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.cancel-link {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-family: inherit;
+}
+
+.add-customer-btn {
+  background: var(--sage);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.staff-search {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.staff-search input {
+  flex: 1;
+}
+
+/* Editable Name */
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name-row h3 {
+  margin: 0;
+}
+
+.edit-name-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.edit-name-btn:hover {
+  color: var(--charcoal);
+}
+
+.edit-name-form input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: inherit;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+
+.edit-name-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Invite Form */
+.invite-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.invite-form input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.invite-btn {
+  background: var(--sage);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
