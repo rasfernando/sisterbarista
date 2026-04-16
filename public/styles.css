@@ -220,6 +220,17 @@ body {
   border: 1px solid rgba(185, 64, 64, 0.15);
 }
 
+.success-message {
+  color: #2d6a4f;
+  font-size: 0.875rem;
+  text-align: center;
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: #d8f3dc;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(45, 106, 79, 0.15);
+}
+
 /* Dev panel — only shown in non-prod environments */
 .dev-panel {
   margin-top: 1.5rem;

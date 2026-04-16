@@ -34,7 +34,17 @@
           <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
           <button id="auth-submit" onclick="handleAuth()">Sign in</button>
           <div id="auth-error" class="error-message" style="display:none;"></div>
+          <div id="auth-success" class="success-message" style="display:none;"></div>
           <p id="auth-toggle" class="auth-toggle">New here? <a href="#" onclick="toggleSignUpMode(); return false;">Sign up</a></p>
+          <p id="auth-forgot" class="auth-toggle"><a href="#" onclick="handleForgotPassword(); return false;">Forgot password?</a></p>
+        </div>
+        <!-- Reset password screen (shown when user clicks reset link in email) -->
+        <div id="reset-password-form" style="display:none;">
+          <p class="auth-message">Set your new password</p>
+          <input type="password" id="reset-password" placeholder="New password" autocomplete="new-password">
+          <input type="password" id="reset-password-confirm" placeholder="Confirm new password" autocomplete="new-password">
+          <button id="reset-submit" onclick="handleResetPassword()">Update password</button>
+          <div id="reset-error" class="error-message" style="display:none;"></div>
         </div>
         <div id="dev-panel" class="dev-panel" style="display:none;">
           <p class="dev-label">Dev mode</p>

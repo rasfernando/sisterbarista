@@ -104,6 +104,68 @@ function toggleSignUpMode() {
   }
 }
 
+async function handleForgotPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  const errorEl = document.getElementById('auth-error');
+  const successEl = document.getElementById('auth-success');
+
+  errorEl.style.display = 'none';
+  successEl.style.display = 'none';
+
+  if (!email) {
+    errorEl.textContent = 'Enter your email above, then tap Forgot password';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+
+  if (error) {
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  successEl.textContent = 'Check your email for a reset link!';
+  successEl.style.display = 'block';
+}
+
+async function handleResetPassword() {
+  const password = document.getElementById('reset-password').value;
+  const confirm = document.getElementById('reset-password-confirm').value;
+  const errorEl = document.getElementById('reset-error');
+
+  errorEl.style.display = 'none';
+
+  if (!password || password.length < 6) {
+    errorEl.textContent = 'Password must be at least 6 characters';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (password !== confirm) {
+    errorEl.textContent = 'Passwords do not match';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const { error } = await sb.auth.updateUser({ password });
+
+  if (error) {
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // Password updated — sign them in normally
+  document.getElementById('reset-password-form').style.display = 'none';
+  document.getElementById('auth-form').style.display = 'block';
+  const successEl = document.getElementById('auth-success');
+  successEl.textContent = 'Password updated! You can now sign in.';
+  successEl.style.display = 'block';
+}
+
 async function handleLogout() {
   await sb.auth.signOut();
   currentUser = null;
@@ -610,6 +672,15 @@ async function init() {
       currentUser = null;
       currentProfile = null;
       showScreen('auth-screen');
+      return;
+    }
+
+    if (event === 'PASSWORD_RECOVERY') {
+      // User clicked reset link in email — show reset form
+      showScreen('auth-screen');
+      document.getElementById('auth-form').style.display = 'none';
+      document.getElementById('dev-panel').style.display = 'none';
+      document.getElementById('reset-password-form').style.display = 'block';
       return;
     }
 
