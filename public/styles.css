@@ -1322,6 +1322,40 @@ body {
   gap: 0.75rem;
 }
 
+/* Privacy links */
+.privacy-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+}
+
+.privacy-link a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.privacy-link a:hover {
+  text-decoration: underline;
+}
+
+.screen-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+.footer-privacy-link {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer-privacy-link:hover {
+  text-decoration: underline;
+}
+
 /* Invite Form */
 .invite-form {
   display: flex;
