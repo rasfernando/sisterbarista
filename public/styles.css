@@ -1356,6 +1356,154 @@ body {
   text-decoration: underline;
 }
 
+/* Staff content areas fill available space */
+#staff-list-view,
+#staff-detail-view,
+#staff-dashboard-view {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: white;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.6rem 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-tab.active {
+  color: var(--sage);
+}
+
+.nav-tab svg {
+  transition: stroke 0.2s;
+}
+
+/* Dashboard */
+.dashboard {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+.dash-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.dash-card h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 0.75rem 0;
+}
+
+.dash-stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-number {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  line-height: 1.1;
+}
+
+.dash-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.dash-trend {
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+  color: var(--muted);
+}
+
+.dash-trend.up {
+  color: #2d6a4f;
+}
+
+.dash-trend.down {
+  color: var(--red-err);
+}
+
+/* Top customers list */
+.dash-top-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-top-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+}
+
+.dash-top-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.6rem;
+}
+
+.dash-top-rank {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--charcoal);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dash-top-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.dash-top-stamps {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 /* Invite Form */
 .invite-form {
   display: flex;

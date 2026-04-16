@@ -854,6 +854,136 @@ async function redeemReward() {
 }
 
 // ============================================
+// Staff: Dashboard
+// ============================================
+
+function switchStaffTab(tab) {
+  const listView = document.getElementById('staff-list-view');
+  const detailView = document.getElementById('staff-detail-view');
+  const dashView = document.getElementById('staff-dashboard-view');
+  const addForm = document.getElementById('add-customer-form');
+  const scannerContainer = document.getElementById('scanner-container');
+  const customersFooter = document.getElementById('staff-customers-footer');
+  const navCustomers = document.getElementById('nav-customers');
+  const navDashboard = document.getElementById('nav-dashboard');
+
+  if (tab === 'dashboard') {
+    listView.style.display = 'none';
+    detailView.style.display = 'none';
+    addForm.style.display = 'none';
+    scannerContainer.style.display = 'none';
+    customersFooter.style.display = 'none';
+    dashView.style.display = 'block';
+    navCustomers.classList.remove('active');
+    navDashboard.classList.add('active');
+    loadDashboard();
+  } else {
+    dashView.style.display = 'none';
+    listView.style.display = 'flex';
+    customersFooter.style.display = 'flex';
+    navDashboard.classList.remove('active');
+    navCustomers.classList.add('active');
+  }
+}
+
+async function loadDashboard() {
+  const now = new Date();
+
+  // Start of today (UTC)
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
+  // Start of this week (Monday)
+  const dayOfWeek = now.getDay() || 7; // Sunday = 7
+  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 1).toISOString();
+
+  // Start of last week
+  const lastWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek - 6).toISOString();
+
+  // Run all queries in parallel
+  const [todayStamps, todayRedeemed, todayNewCustomers, weekStamps, weekRedeemed, lastWeekStamps, totalCustomers, totalRedeemed, topCustomersData] = await Promise.all([
+    // Today's stamps
+    sb.from('stamp_events').select('stamps_awarded', { count: 'exact' }).gte('created_at', todayStart),
+    // Today's redemptions
+    sb.from('stamp_cards').select('id', { count: 'exact' }).eq('reward_redeemed', true).gte('created_at', todayStart),
+    // New customers today
+    sb.from('profiles').select('id', { count: 'exact' }).eq('role', 'customer').gte('created_at', todayStart),
+    // This week's stamps
+    sb.from('stamp_events').select('stamps_awarded', { count: 'exact' }).gte('created_at', weekStart),
+    // This week's redemptions
+    sb.from('stamp_cards').select('id', { count: 'exact' }).eq('reward_redeemed', true).gte('created_at', weekStart),
+    // Last week's stamps
+    sb.from('stamp_events').select('stamps_awarded', { count: 'exact' }).gte('created_at', lastWeekStart).lt('created_at', weekStart),
+    // Total customers
+    sb.from('profiles').select('id', { count: 'exact' }).eq('role', 'customer'),
+    // Total all-time redeemed
+    sb.from('stamp_cards').select('id', { count: 'exact' }).eq('reward_redeemed', true),
+    // Top customers: get all stamp events grouped
+    sb.from('stamp_events').select('customer_id, stamps_awarded'),
+  ]);
+
+  // Today
+  const stampsToday = todayStamps.data?.reduce((sum, e) => sum + e.stamps_awarded, 0) || 0;
+  document.getElementById('dash-stamps-today').textContent = stampsToday;
+  document.getElementById('dash-redeemed-today').textContent = todayRedeemed.count || 0;
+  document.getElementById('dash-new-today').textContent = todayNewCustomers.count || 0;
+
+  // This week
+  const stampsWeek = weekStamps.data?.reduce((sum, e) => sum + e.stamps_awarded, 0) || 0;
+  const stampsLastWeek = lastWeekStamps.data?.reduce((sum, e) => sum + e.stamps_awarded, 0) || 0;
+  document.getElementById('dash-stamps-week').textContent = stampsWeek;
+  document.getElementById('dash-redeemed-week').textContent = weekRedeemed.count || 0;
+
+  // Trend
+  const trendEl = document.getElementById('dash-trend');
+  if (stampsLastWeek > 0) {
+    const diff = stampsWeek - stampsLastWeek;
+    if (diff > 0) {
+      trendEl.textContent = `+${diff} more than last week`;
+      trendEl.className = 'dash-trend up';
+    } else if (diff < 0) {
+      trendEl.textContent = `${diff} fewer than last week`;
+      trendEl.className = 'dash-trend down';
+    } else {
+      trendEl.textContent = 'Same as last week';
+      trendEl.className = 'dash-trend';
+    }
+  } else {
+    trendEl.textContent = 'No data from last week';
+    trendEl.className = 'dash-trend';
+  }
+
+  // Overview
+  document.getElementById('dash-total-customers').textContent = totalCustomers.count || 0;
+  document.getElementById('dash-total-redeemed').textContent = totalRedeemed.count || 0;
+
+  // Top customers (by total stamps earned)
+  const customerStamps = {};
+  topCustomersData.data?.forEach(e => {
+    customerStamps[e.customer_id] = (customerStamps[e.customer_id] || 0) + e.stamps_awarded;
+  });
+
+  const sorted = Object.entries(customerStamps)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const topListEl = document.getElementById('dash-top-customers');
+  if (sorted.length === 0) {
+    topListEl.innerHTML = '<p class="empty-state">No stamps yet</p>';
+  } else {
+    // Match names from allCustomers cache
+    topListEl.innerHTML = sorted.map(([id, total], i) => {
+      const customer = allCustomers.find(c => c.id === id);
+      const name = customer?.name || 'Unknown';
+      return `<div class="dash-top-item">
+        <span class="dash-top-rank">${i + 1}</span>
+        <span class="dash-top-name">${name}</span>
+        <span class="dash-top-stamps">${total} stamps</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ============================================
 // Init
 // ============================================
 

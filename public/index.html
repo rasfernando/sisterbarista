@@ -246,7 +246,94 @@
         </div>
       </div>
 
-      <div class="screen-footer">
+      <!-- Dashboard View -->
+      <div id="staff-dashboard-view" style="display:none;">
+        <div class="dashboard">
+
+          <div class="dash-card">
+            <h4>Today</h4>
+            <div class="dash-stats">
+              <div class="dash-stat">
+                <span class="dash-number" id="dash-stamps-today">—</span>
+                <span class="dash-label">stamps</span>
+              </div>
+              <div class="dash-stat">
+                <span class="dash-number" id="dash-redeemed-today">—</span>
+                <span class="dash-label">redeemed</span>
+              </div>
+              <div class="dash-stat">
+                <span class="dash-number" id="dash-new-today">—</span>
+                <span class="dash-label">new customers</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <h4>This week</h4>
+            <div class="dash-stats">
+              <div class="dash-stat">
+                <span class="dash-number" id="dash-stamps-week">—</span>
+                <span class="dash-label">stamps</span>
+              </div>
+              <div class="dash-stat">
+                <span class="dash-number" id="dash-redeemed-week">—</span>
+                <span class="dash-label">redeemed</span>
+              </div>
+            </div>
+            <p class="dash-trend" id="dash-trend"></p>
+          </div>
+
+          <div class="dash-card">
+            <h4>Top customers</h4>
+            <div id="dash-top-customers" class="dash-top-list">
+              <p class="empty-state">Loading...</p>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <h4>Overview</h4>
+            <div class="dash-stats">
+              <div class="dash-stat">
+                <span class="dash-number" id="dash-total-customers">—</span>
+                <span class="dash-label">total customers</span>
+              </div>
+              <div class="dash-stat">
+                <span class="dash-number" id="dash-total-redeemed">—</span>
+                <span class="dash-label">all-time redeemed</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="screen-footer">
+          <button class="logout-btn" onclick="handleLogout()">Sign out</button>
+          <a href="/privacy.html" class="footer-privacy-link">Privacy Policy</a>
+        </div>
+      </div>
+
+      <!-- Bottom Nav -->
+      <nav class="bottom-nav">
+        <button class="nav-tab active" id="nav-customers" onclick="switchStaffTab('customers')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+            <path d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          <span>Customers</span>
+        </button>
+        <button class="nav-tab" id="nav-dashboard" onclick="switchStaffTab('dashboard')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 20V10"/>
+            <path d="M12 20V4"/>
+            <path d="M6 20v-6"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+      </nav>
+
+      <div class="screen-footer" id="staff-customers-footer">
         <button class="logout-btn" onclick="handleLogout()">Sign out</button>
         <a href="/privacy.html" class="footer-privacy-link">Privacy Policy</a>
       </div>
